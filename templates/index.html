@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>STEM AI Tutor</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-gray-100 font-sans">
+    <div class="max-w-3xl mx-auto p-4">
+      <h1 class="text-3xl font-bold text-orange-600 text-center mb-6">🎓 STEM AI Tutor</h1>
+
+      <div class="flex flex-col sm:flex-row gap-2 justify-center mb-4">
+        <select id="mode" class="p-2 border rounded">
+          <option value="math">Math</option>
+          <option value="science">Science</option>
+          <option value="tech">Technology</option>
+          <option value="engineering">Engineering</option>
+        </select>
+        <input type="text" id="question" placeholder="Ask a question..." class="flex-1 p-2 border rounded" />
+        <button onclick="askTutor()" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">Ask</button>
+      </div>
+
+      <div class="flex flex-col sm:flex-row gap-2 justify-center mb-6">
+        <input type="number" id="num-questions" placeholder="How many quiz questions?" class="p-2 border rounded" />
+        <button onclick="startQuiz()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Start Quiz</button>
+      </div>
+
+      <div id="chat-box" class="bg-white h-96 overflow-y-auto p-4 rounded shadow mb-4"></div>
+
+      <div id="quiz-answer-container" class="fixed bottom-0 left-0 w-full bg-white p-4 border-t hidden">
+        <div class="max-w-3xl mx-auto flex gap-2">
+          <input type="text" id="quiz-answer" placeholder="Enter your answer..." class="flex-1 p-2 border rounded" />
+          <button onclick="submitQuizAnswer()" class="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600">Submit</button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      function askTutor() {
+        let question = document.getElementById("question").value;
+        let mode = document.getElementById("mode").value;
+        let chatBox = document.getElementById("chat-box");
+
+        if (!question) {
+          alert("Please enter a question!");
+          return;
+        }
+
+        chatBox.innerHTML += `<p class='mb-2'><strong>You:</strong> ${question}</p>`;
+
+        fetch("/ask", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ question: question, mode: mode }),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            chatBox.innerHTML += `<p class='mb-2'><strong>AI:</strong> ${data.response || data.error}</p>`;
+            chatBox.scrollTop = chatBox.scrollHeight;
+          });
+
+        document.getElementById("question").value = "";
+      }
+
+      function startQuiz() {
+        let numQuestions = document.getElementById("num-questions").value;
+        let mode = document.getElementById("mode").value;
+        let chatBox = document.getElementById("chat-box");
+
+        if (!numQuestions || numQuestions < 1) {
+          alert("Please enter a valid number of questions!");
+          return;
+        }
+
+        fetch("/start_quiz", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ num_questions: numQuestions, mode: mode }),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            chatBox.innerHTML += `<p class='mb-2'><strong>Quiz Question:</strong> ${data.question}</p>`;
+            document.getElementById("quiz-answer-container").style.display = "block";
+          });
+      }
+
+      function submitQuizAnswer() {
+        let answer = document.getElementById("quiz-answer").value;
+        let chatBox = document.getElementById("chat-box");
+
+        if (!answer) {
+          alert("Please enter an answer!");
+          return;
+        }
+
+        chatBox.innerHTML += `<p class='mb-2'><strong>You:</strong> ${answer}</p>`;
+
+        fetch("/check_answer", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ answer: answer }),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            chatBox.innerHTML += `<p class='mb-2'><strong>AI:</strong> ${data.response}</p>`;
+            if (data.explanation) {
+              chatBox.innerHTML += `<p class='mb-2'><strong>Explanation:</strong> ${data.explanation}</p>`;
+            }
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            document.getElementById("quiz-answer").value = "";
+
+            if (data.response.includes("Quiz Over")) {
+              document.getElementById("quiz-answer-container").style.display = "none";
+            }
+          });
+      }
+    </script>
+  </body>
+</html>
