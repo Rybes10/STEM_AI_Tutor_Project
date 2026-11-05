@@ -192,6 +192,6 @@ This is a school-style project. Here are the things that are not finished yet:
 
 This was a team project. Thank you to:
 
-- **Rybes10**
+- **Reeddhiman Pradhan**
 - **Akoi Mariik**
 - **Gavin Lee Hyugh**
