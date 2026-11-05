@@ -1,3 +1,4 @@
+import os
 from flask import Flask, render_template, request, jsonify
 import openai
 import json
@@ -5,7 +6,7 @@ import json
 app = Flask(__name__)
 
 # ✅ Set up OpenAI API key
-openai.api_key = "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"
+openai.api_key = os.environ["OPENAI_API_KEY"]
 
 # ✅ STEM subject prompts
 STEM_PROMPTS = {

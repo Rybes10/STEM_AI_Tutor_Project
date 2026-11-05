@@ -1,4 +1,4 @@
 flask
 gunicorn
 flask-session
-openai
+openai==0.28.1

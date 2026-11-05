@@ -8,7 +8,7 @@ import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger()
 
-openai.api_key = "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"
+openai.api_key = os.environ["OPENAI_API_KEY"]
 
 STEM_PROMPTS = {
     "math": "You are a mathematics tutor. Focus on explaining mathematical concepts clearly, showing step-by-step solutions, and providing practice problems when appropriate. Cover topics from algebra, calculus, statistics, and other mathematical fields.",
