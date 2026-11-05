@@ -7,6 +7,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked@15.0.12/marked.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/dompurify@3.2.6/dist/purify.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
     <style>
       .md p { margin-bottom: 0.5rem; }
       .md ul { list-style: disc; margin: 0.5rem 0 0.5rem 1.5rem; }
@@ -57,10 +59,37 @@
         return div.innerHTML;
       }
 
-      // Turn Markdown from the AI into safe HTML
+      // Turn Markdown and math from the AI into safe HTML
       function renderMarkdown(text) {
-        const html = marked.parse(String(text ?? ""), { breaks: true });
-        return DOMPurify.sanitize(html);
+        const math = [];
+
+        // 1. Pull the math out first, so Markdown does not break it
+        const withPlaceholders = String(text ?? "").replace(
+          /\$\$([\s\S]+?)\$\$|\\\[([\s\S]+?)\\\]|\\\(([\s\S]+?)\\\)|\$(?!\s)([^$\n]+?)(?<!\s)\$(?!\d)/g,
+          (match, d1, d2, d3, d4) => {
+            const expr = d1 ?? d2 ?? d3 ?? d4;
+            const display = d1 !== undefined || d2 !== undefined;
+            math.push({ expr: expr.trim(), display });
+            return `@@MATH${math.length - 1}@@`;
+          }
+        );
+
+        // 2. Markdown to HTML, then clean it
+        const html = DOMPurify.sanitize(marked.parse(withPlaceholders, { breaks: true }));
+
+        // 3. Put the math back, drawn by KaTeX
+        return html.replace(/@@MATH(\d+)@@/g, (match, i) => {
+          const item = math[Number(i)];
+          if (!item) return match;
+          try {
+            return katex.renderToString(item.expr, {
+              displayMode: item.display,
+              throwOnError: false,
+            });
+          } catch (e) {
+            return escapeHtml(item.expr);
+          }
+        });
       }
 
       function askTutor() {
