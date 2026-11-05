@@ -9,6 +9,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger()
 
 openai.api_key = os.environ["OPENAI_API_KEY"]
+MODEL = os.environ.get("OPENAI_MODEL", "gpt-5.6-terra")
 
 STEM_PROMPTS = {
     "math": "You are a mathematics tutor. Focus on explaining mathematical concepts clearly, showing step-by-step solutions, and providing practice problems when appropriate. Cover topics from algebra, calculus, statistics, and other mathematical fields.",
@@ -35,10 +36,9 @@ def generate_quiz_question(mode, retries=3, delay=5):
     for attempt in range(retries):
         try:
             response = openai.ChatCompletion.create(
-                model="gpt-3.5-turbo",
+                model=MODEL,
                 messages=[{"role": "system", "content": QUIZ_PROMPTS[mode]},
                           {"role": "user", "content": "Generate a question in valid JSON format with fields: question, correct_answer, and explanation"}],
-                temperature=0.7,
                 timeout=30  # Timeout increased to 30 seconds
             )
             content = response["choices"][0]["message"]["content"].strip()
@@ -79,7 +79,7 @@ def ask_stem_tutor(question, mode):
     ]
     try:
         response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
+            model=MODEL,
             messages=messages,
             timeout=30  # Timeout increased to 30 seconds
         )

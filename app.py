@@ -7,6 +7,7 @@ app = Flask(__name__)
 
 # ✅ Set up OpenAI API key
 openai.api_key = os.environ["OPENAI_API_KEY"]
+MODEL = os.environ.get("OPENAI_MODEL", "gpt-5.6-terra")
 
 # ✅ STEM subject prompts
 STEM_PROMPTS = {
@@ -47,7 +48,7 @@ def ask():
 
     try:
         response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
+            model=MODEL,
             messages=[{"role": "system", "content": STEM_PROMPTS.get(mode, "You are a knowledgeable AI tutor.")}, {"role": "user", "content": question}]
         )
 
@@ -71,12 +72,11 @@ def generate_quiz_question(mode="math"):
     global current_quiz_question
     try:
         response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
+            model=MODEL,
             messages=[
                 {"role": "system", "content": QUIZ_PROMPTS[mode]},
                 {"role": "user", "content": "Generate a question in valid JSON format with fields: question, correct_answer, and explanation"}
             ],
-            temperature=0.7
         )
 
         content = response["choices"][0]["message"]["content"].strip()
