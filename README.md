@@ -181,7 +181,6 @@ This is a school-style project. Here are the things that are not finished yet:
 
 ## Ideas for the Future
 
-- [ ] Show math symbols nicely with KaTeX
 - [ ] Keep quiz scores per user with Flask sessions
 - [ ] Accept answers that are close, like "four" and "4"
 - [ ] Add chat memory to the website
